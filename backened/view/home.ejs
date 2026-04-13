@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- <h1>home page</h1> -->
+    <!-- <ul>
+       
+    </ul> -->
+    <h2>Url Shortener</h2>
+    <% if(locals.id){ %>
+        <p>URL Generated:</p>
+        <a href="http://localhost:9000/url/<%=id %>" target="_blank">
+             http://localhost:9000/url/<%=id %>
+        </a>
+        <button onclick="copyUrl('http://localhost:9000/url/<%=id %>')">Copy</button>
+        <% } %>
+            <div>
+                <form method="POST" action="/url">
+                    <label for="">enter your original url</label>
+                    <input type="text" name="url" placeholder="https://example.com">
+                    <button>Generate url</button>
+                </form>
+            </div>
+            <div>
+                <%if(locals.urls){ %>
+                    <table>
+                        <thead>
+                            <th>S.No.</th>
+                            <th>Short Id</th>
+                            <th>Redirect</th>
+                            <th>Created On</th>
+                            <th>Clicks</th>
+                        </thead>
+                        <tbody>
+                            <% urls.forEach((url,index)=>{ %>
+                                <tr>
+                                    <td>
+                                        <%=index+1 %>
+                                    </td>
+                                    <td>
+                                        <%= url.shortId %>
+                                    </td>
+                                    <td>
+                                        <%= url.redirectUrl %>
+                                    </td>
+                                    <td>
+                                        <%=url.createdAt.toISOString().split('T')[0] %>
+                                    </td>
+                                    <td>
+                                        <%= url.visitHistory.length %>
+                                    </td>
+                                </tr>
+
+                                <% }); %>
+                        </tbody>
+                    </table>
+                    <% } %>
+            </div>
+<script>
+    function copyUrl(url){
+    navigator.clipboard.writeText(url);
+    alert("Copied!");
+}
+</script>
+</body>
+
+</html>
