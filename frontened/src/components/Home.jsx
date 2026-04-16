@@ -3,8 +3,10 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel, FieldContent, FieldError } from '@/components/ui/field';
-import { generateShortUrl, generateCustomUrl } from '@/api/url';
+import { generateShortUrl, generateCustomUrl, API_BASE_URL } from '@/api/url';
 import { useNavigate } from 'react-router-dom';
+
+import  Navbar  from './navbar';
 
 export const Home = () => {
   const [activeTab, setActiveTab] = useState('quick'); // 'quick' or 'custom'
@@ -16,6 +18,8 @@ export const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const navigate = useNavigate();
+  const backendOrigin = new URL(API_BASE_URL).origin;
+  const shortLinkPrefix = `${backendOrigin}/url`;
 
   useEffect(() => {
     // Check if user is logged in
@@ -35,6 +39,7 @@ export const Home = () => {
         throw new Error('Please enter a URL');
       }
       const result = await generateShortUrl(urlInput);
+      console.log(result);
       setGeneratedUrl(result.id);
       setUrlInput('');
     } catch (err) {
@@ -42,6 +47,8 @@ export const Home = () => {
     } finally {
       setLoading(false);
     }
+    console.log('generated url',generatedUrl)
+
   };
 
   const handleGenerateCustomUrl = async (e) => {
@@ -72,7 +79,7 @@ export const Home = () => {
   };
 
   const handleCopyToClipboard = () => {
-    const fullUrl = `${window.location.origin}/${generatedUrl}`;
+    const fullUrl = `${shortLinkPrefix}/${generatedUrl}`;
     navigator.clipboard.writeText(fullUrl);
     alert('Copied to clipboard!');
   };
@@ -90,39 +97,8 @@ export const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Navigation Header */}
-      <nav className="bg-white shadow-md p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-indigo-600">URL Shortener</h1>
-          <div className="flex gap-4">
-            {isLoggedIn ? (
-              <>
-                <span className="text-gray-600 py-2">Logged In</span>
-                <Button
-                  onClick={handleLogout}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  onClick={handleLoginRedirect}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                >
-                  Login
-                </Button>
-                <Button
-                  onClick={() => navigate('/signup')}
-                  className="bg-gray-600 hover:bg-gray-700 text-white"
-                >
-                  Signup
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar isLoggedIn={isLoggedIn} handleLoginRedirect={handleLoginRedirect}
+      handleLogout={handleLogout}/>
 
       <div className="p-4">
         <div className="max-w-2xl mx-auto">
@@ -195,7 +171,7 @@ export const Home = () => {
                       <input
                         type="text"
                         readOnly
-                        value={`${window.location.origin}/${generatedUrl}`}
+                        value={`${shortLinkPrefix}/${generatedUrl}`}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded bg-white"
                       />
                       <Button
@@ -275,7 +251,7 @@ export const Home = () => {
                           <input
                             type="text"
                             readOnly
-                            value={`${window.location.origin}/${generatedUrl}`}
+                            value={`${shortLinkPrefix}/${generatedUrl}`}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded bg-white"
                           />
                           <Button

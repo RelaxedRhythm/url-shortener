@@ -16,10 +16,7 @@ async function handleGenerateShortURL(req,res){
         createdBy: req.user ? req.user._id : undefined,
     })
 
-    return res.render("home",{
-        id:shortId,
-    })
-    // return res.json({id:shortId});
+    return res.json({id:shortId});
 }
 
 async function handleGenerateCustomUrl(req,res){
@@ -39,8 +36,7 @@ async function handleGenerateCustomUrl(req,res){
         createdBy: req.user._id,
     });
 
-    return res.render("home", { id: body.customId });
-    // return res.json({ id: body.customId });
+    return res.json({ id: body.customId });
 }   
 
 async function handleShortUrlId(req,res){
