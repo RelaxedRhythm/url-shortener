@@ -42,3 +42,16 @@ export const getAnalytics = async (shortId) => {
     }
   }
 };
+
+export const getUserUrls = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/url/user/urls`, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.error || 'Failed to fetch user URLs');
+    } else {
+      throw new Error('Network error. Please try again.');
+    }
+  }
+};

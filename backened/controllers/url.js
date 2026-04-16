@@ -57,15 +57,15 @@ async function handleShortUrlId(req,res){
     res.redirect(entry.redirectUrl);
 }
 
-async function handlegetAnalytics(req,res){
-    const shortId = req.params.shortId;
-    const result = await URL.findOne({shortId});
-    if (!result) {
-        return res.status(404).json({ error: "Short URL not found" });
+async function handleGetUserUrls(req, res) {
+    try {
+        const userUrls = await URL.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
+        res.json(userUrls);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch user URLs" });
     }
-    return res.json({ totalClicks: result.visitHistory.length, analytics: result.visitHistory });
 }
 
 module.exports={
-    handleGenerateShortURL,handleGenerateCustomUrl,handleShortUrlId,handlegetAnalytics,
-}
+    handleGenerateShortURL,handleGenerateCustomUrl,handleShortUrlId,handleGetUserUrls,
+};

@@ -13,6 +13,12 @@ export default function Navbar({isLoggedIn,handleLoginRedirect,handleLogout}){
           <div className="flex gap-4">
             {isLoggedIn ? (
               <>
+                <Button
+                  onClick={() => navigate('/dashboard')}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Dashboard
+                </Button>
                 <span className="text-gray-600 py-2">Logged In</span>
                 <Button
                   onClick={handleLogout}

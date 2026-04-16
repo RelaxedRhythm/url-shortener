@@ -1,6 +1,5 @@
 const express=require("express");
 const path=require("path");
-const ejs=require("ejs");
 const cookieParser=require("cookie-parser");
 const cors=require("cors");
 require("dotenv").config();
@@ -11,12 +10,8 @@ const staticRouter=require("./routes/staticRouter");
 const userRouter=require("./routes/user");
 const {restrictToLoggedInUserOnly,checkAuth}=require("./middlewares/auth")
 
-// const {checkForAuth,restrictTo}=require("./middlewares/auth");
-
 const app=express();
 const port=process.env.PORT || 9000;
-
-// const 
 
 connectMongoDb(process.env.Db_URL);
 
@@ -25,7 +20,7 @@ app.set("views",path.resolve("./view")); // yeh btata h ki hme view folder mein 
 
 //middleware?
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5175',
     credentials: true
 }));
 app.use(express.json()); //to parse the body
