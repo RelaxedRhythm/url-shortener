@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel, FieldContent, FieldError } from '@/components/ui/field';
 import { generateShortUrl, generateCustomUrl, API_BASE_URL } from '@/api/url';
+import { checkAuth } from '@/api/auth';
 import { useNavigate } from 'react-router-dom';
 
 import  Navbar  from './navbar';
@@ -23,9 +24,14 @@ export const Home = () => {
 
   useEffect(() => {
     // Check if user is logged in
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-    // You could also decode the token to get user info
+    const checkLoginStatus = async () => {
+      const authStatus = await checkAuth();
+      setIsLoggedIn(authStatus.isLoggedIn);
+      if (authStatus.user) {
+        setUserName(authStatus.user.name);
+      }
+    };
+    checkLoginStatus();
   }, []);
 
   const handleGenerateQuickUrl = async (e) => {
@@ -66,8 +72,7 @@ export const Home = () => {
         throw new Error('Please enter both URL and custom ID');
       }
 
-      const token = localStorage.getItem('token');
-      const result = await generateCustomUrl(urlInput, customId, token);
+      const result = await generateCustomUrl(urlInput, customId);
       setGeneratedUrl(result.id);
       setUrlInput('');
       setCustomId('');
@@ -89,9 +94,9 @@ export const Home = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    // Since token is in cookie, frontend can't clear it. User needs to logout via backend or close browser.
     setIsLoggedIn(false);
-    alert('Logged out successfully!');
+    alert('Please close the browser or clear cookies to logout completely.');
   };
 
   return (

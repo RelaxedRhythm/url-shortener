@@ -1,5 +1,5 @@
 const User=require("../models/user")
-const {v4:uuidv4} =require("uuid")
+// const {v4:uuidv4} =require("uuid")
 const {getUser,setUser}=require("../service/auth")
 
 
@@ -34,8 +34,12 @@ async function handleUserLogin(req,res){
     })
 
     const token = setUser(user);
-    // res.cookie("token", token);
+    res.cookie("token", token, {
+        httpOnly: true,
+        // secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
 
-    return res.json({success: true, token, user: {name: user.name, email: user.email}});   
+    return res.json({success: true, user: {name: user.name, email: user.email}});   
 }
 module.exports={handleUserSignUp,handleUserLogin}

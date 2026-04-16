@@ -24,7 +24,10 @@ app.set("view engine","ejs");
 app.set("views",path.resolve("./view")); // yeh btata h ki hme view folder mein se ejs file ko  render krna h
 
 //middleware?
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true
+}));
 app.use(express.json()); //to parse the body
 app.use(express.urlencoded({extended:false}));
 app.use(cookieParser());

@@ -38,7 +38,7 @@ export default function Login() {
       const result = await loginUser(data);
       if (result.success) {
         console.log(result);
-        localStorage.setItem('token', result.token);
+        // Token is now stored in cookie by backend
         // Redirect to home
         navigate('/');
       } else {
