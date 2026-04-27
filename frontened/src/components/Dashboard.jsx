@@ -92,7 +92,9 @@ export const Dashboard = () => {
                   <Card key={url._id} className="p-6">
                     <CardHeader className="p-0 mb-4">
                       <CardTitle className="text-lg font-semibold text-gray-800 truncate">
-                        {url.redirectUrl}
+                        <a href={url.redirectUrl}> 
+                          {url.redirectUrl}
+                        </a>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 space-y-4">

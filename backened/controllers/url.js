@@ -66,6 +66,39 @@ async function handleGetUserUrls(req, res) {
     }
 }
 
+async function handleGetAnalytics(req, res) {
+    try {
+        const { shortId } = req.params;
+        const urlEntry = await URL.findOne({ shortId });
+        
+        if (!urlEntry) {
+            return res.status(404).json({ error: "URL not found" });
+        }
+
+        // Check if user is authorized to view analytics
+        if (urlEntry.createdBy && urlEntry.createdBy.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: "Unauthorized to view this URL's analytics" });
+        }
+
+        const totalClicks = urlEntry.visitHistory.length;
+        
+        // Convert timeStamp to timestamp for frontend consistency
+        const analytics = urlEntry.visitHistory.map(visit => ({
+            timestamp: visit.timeStamp
+        }));
+
+        res.json({
+            shortId,
+            totalClicks,
+            analytics,
+            createdAt: urlEntry.createdAt,
+            redirectUrl: urlEntry.redirectUrl
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+}
+
 module.exports={
-    handleGenerateShortURL,handleGenerateCustomUrl,handleShortUrlId,handleGetUserUrls,
+    handleGenerateShortURL,handleGenerateCustomUrl,handleShortUrlId,handleGetUserUrls,handleGetAnalytics,
 };
