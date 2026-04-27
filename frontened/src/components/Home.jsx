@@ -17,7 +17,7 @@ export const Home = () => {
   const [error, setError] = useState('');
   const [generatedUrl, setGeneratedUrl] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const backendOrigin = new URL(API_BASE_URL).origin;
   const shortLinkPrefix = `${backendOrigin}/url`;
@@ -28,7 +28,7 @@ export const Home = () => {
       const authStatus = await checkAuth();
       setIsLoggedIn(authStatus.isLoggedIn);
       if (authStatus.user) {
-        setUserName(authStatus.user.name);
+        setUser(authStatus.user);
       }
     };
     checkLoginStatus();
@@ -94,15 +94,16 @@ export const Home = () => {
   };
 
   const handleLogout = () => {
-    // Since token is in cookie, frontend can't clear it. User needs to logout via backend or close browser.
     setIsLoggedIn(false);
-    alert('Please close the browser or clear cookies to logout completely.');
+    setUser(null);
+    navigate('/');
+    alert('Logged out successfully!');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Navigation Header */}
-      <Navbar isLoggedIn={isLoggedIn} handleLoginRedirect={handleLoginRedirect}
+      <Navbar isLoggedIn={isLoggedIn} user={user} handleLoginRedirect={handleLoginRedirect}
       handleLogout={handleLogout}/>
 
       <div className="p-4">

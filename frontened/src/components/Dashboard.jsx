@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getUserUrls, getAnalytics, API_BASE_URL } from '@/api/url';
+import { checkAuth } from '@/api/auth';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './navbar';
 
@@ -10,12 +11,31 @@ export const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [analytics, setAnalytics] = useState({});
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const backendOrigin = new URL(API_BASE_URL).origin;
 
   useEffect(() => {
-    fetchUserUrls();
+    checkAuthStatus();
   }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const authStatus = await checkAuth();
+      setIsLoggedIn(authStatus.isLoggedIn);
+      if (authStatus.user) {
+        setUser(authStatus.user);
+      } else {
+        setLoading(false);
+        return;
+      }
+      await fetchUserUrls();
+    } catch (err) {
+      console.error('Auth check failed:', err);
+      setLoading(false);
+    }
+  };
 
   const fetchUserUrls = async () => {
     try {
@@ -45,12 +65,39 @@ export const Dashboard = () => {
     alert('Copied to clipboard!');
   };
 
+  const handleLoginRedirect = () => {
+    navigate('/login');
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUser(null);
+    navigate('/');
+    alert('Logged out successfully!');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Navbar />
+        <Navbar isLoggedIn={isLoggedIn} user={user} handleLoginRedirect={handleLoginRedirect} handleLogout={handleLogout} />
         <div className="flex items-center justify-center h-64">
           <div className="text-xl">Loading dashboard...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Navbar isLoggedIn={isLoggedIn} user={user} handleLoginRedirect={handleLoginRedirect} handleLogout={handleLogout} />
+        <div className="flex items-center justify-center h-64">
+          <Card className="p-8 text-center">
+            <p className="text-gray-600 mb-4">Please log in to view your analytics dashboard</p>
+            <Button onClick={() => navigate('/login')} className="bg-indigo-600 hover:bg-indigo-700">
+              Go to Login
+            </Button>
+          </Card>
         </div>
       </div>
     );
@@ -59,7 +106,7 @@ export const Dashboard = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Navbar />
+        <Navbar isLoggedIn={isLoggedIn} user={user} handleLoginRedirect={handleLoginRedirect} handleLogout={handleLogout} />
         <div className="flex items-center justify-center h-64">
           <div className="text-red-500 text-xl">Error: {error}</div>
         </div>
@@ -69,7 +116,7 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Navbar />
+      <Navbar isLoggedIn={isLoggedIn} user={user} handleLoginRedirect={handleLoginRedirect} handleLogout={handleLogout} />
       <div className="p-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8 mt-6">
