@@ -6,7 +6,7 @@ import { checkAuth } from '@/api/auth';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './navbar';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area, ResponsiveContainer } from 'recharts';
 
 export const Dashboard = () => {
   const [urls, setUrls] = useState([]);
@@ -92,28 +92,40 @@ export const Dashboard = () => {
       // Prepare chart data
       const topUrls = urlClicks
         .sort((a, b) => b.clicks - a.clicks)
-        .slice(0, 10)
-        .map(url => ({
-          name: url.redirectUrl.length > 30 ? url.redirectUrl.substring(0, 30) + '...' : url.redirectUrl,
-          clicks: url.clicks
+        .slice(0, 8)
+        .map((url, index) => ({
+          name: url.redirectUrl.length > 25 ? url.redirectUrl.substring(0, 25) + '...' : url.redirectUrl,
+          clicks: url.clicks,
+          shortId: url.shortId,
+          fill: `hsl(${210 + index * 30}, 70%, ${50 + index * 5}%)`
         }));
 
-      // Aggregate clicks over time (last 30 days)
+      // Aggregate clicks over time (last 30 days) with better formatting
       const clicksByDate = {};
+      const today = new Date();
+      const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
       urlClicks.forEach(url => {
         url.analytics.forEach(visit => {
-          const date = new Date(visit.timestamp).toISOString().split('T')[0];
-          clicksByDate[date] = (clicksByDate[date] || 0) + 1;
+          const visitDate = new Date(visit.timestamp);
+          if (visitDate >= thirtyDaysAgo) {
+            const dateKey = visitDate.toISOString().split('T')[0];
+            clicksByDate[dateKey] = (clicksByDate[dateKey] || 0) + 1;
+          }
         });
       });
 
-      const clicksOverTime = Object.entries(clicksByDate)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .slice(-30) // Last 30 days
-        .map(([date, clicks]) => ({
-          date: new Date(date).toLocaleDateString(),
-          clicks
-        }));
+      // Fill in missing dates with 0 clicks
+      const clicksOverTime = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateKey = date.toISOString().split('T')[0];
+        clicksOverTime.push({
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          fullDate: dateKey,
+          clicks: clicksByDate[dateKey] || 0
+        });
+      }
 
       setChartData({ topUrls, clicksOverTime });
       setAnalytics(analyticsData);
@@ -245,11 +257,13 @@ export const Dashboard = () => {
               </div>
 
               {/* Charts */}
-              <div className="grid gap-6 md:grid-cols-2 mb-8">
+              <div className="grid gap-6 lg:grid-cols-2 mb-8">
                 {/* Top URLs Bar Chart */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Top Performing URLs</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <span>🏆</span> Top Performing URLs
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ChartContainer
@@ -259,29 +273,42 @@ export const Dashboard = () => {
                           color: "hsl(var(--chart-1))",
                         },
                       }}
-                      className="h-[300px]"
+                      className="h-[350px]"
                     >
-                      <BarChart data={chartData.topUrls}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="name" 
-                          angle={-45} 
-                          textAnchor="end" 
+                      <BarChart data={chartData.topUrls} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                        <XAxis
+                          dataKey="name"
+                          angle={-45}
+                          textAnchor="end"
                           height={80}
-                          fontSize={12}
+                          fontSize={11}
+                          interval={0}
                         />
-                        <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="clicks" fill="var(--color-clicks)" />
+                        <YAxis fontSize={12} />
+                        <ChartTooltip
+                          content={<ChartTooltipContent
+                            formatter={(value, name) => [value, 'Clicks']}
+                            labelFormatter={(label) => `URL: ${label}`}
+                          />}
+                        />
+                        <Bar
+                          dataKey="clicks"
+                          fill="var(--color-clicks)"
+                          radius={[4, 4, 0, 0]}
+                          className="hover:opacity-80 transition-opacity"
+                        />
                       </BarChart>
                     </ChartContainer>
                   </CardContent>
                 </Card>
 
-                {/* Clicks Over Time Line Chart */}
+                {/* Clicks Over Time Area Chart */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Clicks Over Time</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <span>📈</span> Daily Click Trends
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ChartContainer
@@ -291,23 +318,31 @@ export const Dashboard = () => {
                           color: "hsl(var(--chart-2))",
                         },
                       }}
-                      className="h-[300px]"
+                      className="h-[350px]"
                     >
-                      <LineChart data={chartData.clicksOverTime}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="date" 
+                      <AreaChart data={chartData.clicksOverTime} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                        <XAxis
+                          dataKey="date"
                           fontSize={12}
+                          interval="preserveStartEnd"
                         />
-                        <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Line 
-                          type="monotone" 
-                          dataKey="clicks" 
-                          stroke="var(--color-clicks)" 
+                        <YAxis fontSize={12} />
+                        <ChartTooltip
+                          content={<ChartTooltipContent
+                            formatter={(value) => [`${value} clicks`, '']}
+                            labelFormatter={(label, payload) => `Date: ${payload?.[0]?.payload?.fullDate || label}`}
+                          />}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="clicks"
+                          stroke="var(--color-clicks)"
+                          fill="var(--color-clicks)"
+                          fillOpacity={0.3}
                           strokeWidth={2}
                         />
-                      </LineChart>
+                      </AreaChart>
                     </ChartContainer>
                   </CardContent>
                 </Card>
