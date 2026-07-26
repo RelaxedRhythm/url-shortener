@@ -1,46 +1,62 @@
+const redis = require("../config/redis");
 const {nanoid} =require("nanoid");
 const {URL}=require("../models/url")
 
 async function handleGenerateShortURL(req,res){
 
     const body=req.body;
+    const ogUrl=body.url;
     // console.log(req.body);
-    if(!body.url) return res.status(400).json({error:"url is required"});
+    if(!ogUrl) return res.status(400).json({error:"url is required"});
 
     const shortId= nanoid(8);
 
     await URL.create({
         shortId: shortId,
-        redirectUrl: body.url,
+        redirectUrl: ogUrl,
         visitHistory: [],
         createdBy: req.user ? req.user._id : undefined,
     })
+    //caching
 
+    await redis.set(`url:${shortId}`,ogUrl,"EX",60*60*24*7);
     return res.json({id:shortId});
 }
 
 async function handleGenerateCustomUrl(req,res){
     const body = req.body;
-    if(!body.url || !body.customId) return res.status(400).json({error:"url and customId is required"});
+    const ogUrl = body.url;
+    const customUrl = body.customId;
+    if(!ogUrl || !customId) return res.status(400).json({error:"url and customId is required"});
     if(!req.user) return res.status(401).json({ error: "Login required to create a custom URL" });
 
-    const existingEntry = await URL.findOne({ shortId: body.customId });
+    const existingEntry = await URL.findOne({ shortId: customUrl });
     if (existingEntry) {
         return res.status(400).json({ error: "Custom ID already in use" });
     }
 
     await URL.create({
-        shortId: body.customId,
-        redirectUrl: body.url,
+        shortId: customUrl,
+        redirectUrl: ogUrl,
         visitHistory: [],
         createdBy: req.user._id,
     });
+    //caching
+    await redis.set(`url:${customUrlId}`,ogUrl,"EX",60*60*24*7);
 
-    return res.json({ id: body.customId });
+    return res.json({ id: customUrl});
 }   
 
 async function handleShortUrlId(req,res){
     const shortId= req.params.shortId;
+
+    const cacheKey = `url:${shortId}`;
+    const cached = await redis.get(cacheKey);
+    //cache hit
+    if(cached) return res.redirect(cached); 
+
+
+    //cache miss
     const entry=await URL.findOneAndUpdate({
         shortId,
     },{
@@ -53,6 +69,9 @@ async function handleShortUrlId(req,res){
      if (!entry) {
         return res.status(404).send("Short URL not found");
     }
+
+    // caching
+    await redis.set(cacheKey,entry.redirectUrl,"EX",3600);
 
     res.redirect(entry.redirectUrl);
 }

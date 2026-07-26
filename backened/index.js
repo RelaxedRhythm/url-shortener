@@ -3,7 +3,7 @@ const path=require("path");
 const cookieParser=require("cookie-parser");
 const cors=require("cors");
 require("dotenv").config();
-const connectMongoDb=require("./connnect");
+const connectMongoDb=require("./config/db");
 const urlRoute=require("./routes/url");
 const {URL}=require("./models/url");
 const staticRouter=require("./routes/staticRouter");

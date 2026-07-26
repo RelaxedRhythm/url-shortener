@@ -1,22 +1,27 @@
-
 const mongoose = require("mongoose");
 
-const urlSchema = new mongoose.Schema({
+const urlSchema = new mongoose.Schema(
+  {
     shortId: {
-        type: String,
-        required: true,
-        unique: true,
+      type: String,
+      required: true,
+      unique: true,
     },
     redirectUrl: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
-    visitHistory: [{ timeStamp: { type: Number } }],
-    createdBy:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"users"
-    }
-}, { timestamps: true });
 
-const URL = mongoose.model("url",urlSchema);
-module.exports={URL};
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+
+    visitHistory: [{ timeStamp: { type: Number } }],
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
+    },
+  },
+  { timestamps: true },
+);
+urlSchema.index({expiresAt:1},{expireAfterSeconds:0})
+const URL = mongoose.model("url", urlSchema);
+module.exports = { URL };
