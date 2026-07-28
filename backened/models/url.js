@@ -12,16 +12,13 @@ const urlSchema = new mongoose.Schema(
       required: true,
     },
 
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-
-    visitHistory: [{ timeStamp: { type: Number } }],
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "users",
+    expiresAt: {
+      type: Date,
+      default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     },
   },
   { timestamps: true },
 );
-urlSchema.index({expiresAt:1},{expireAfterSeconds:0})
+urlSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 const URL = mongoose.model("url", urlSchema);
 module.exports = { URL };

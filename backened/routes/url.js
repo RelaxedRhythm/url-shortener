@@ -1,7 +1,7 @@
 const express=require("express");
 const { handleGenerateShortURL, handleGenerateCustomUrl, handleShortUrlId, handleGetUserUrls, handleGetAnalytics } = require("../controllers/url");
 const { restrictToLoggedInUserOnly } = require("../middlewares/auth");
-const { rateLimiter } = require("../middlewares/ratelimiter");
+const  rateLimiter  = require("../middlewares/ratelimiter");
 
 const router=express.Router();
  

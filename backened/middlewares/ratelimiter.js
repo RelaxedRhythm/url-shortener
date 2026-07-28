@@ -1,7 +1,7 @@
 const redis= require("../config/redis");
 
-export const rateLimiter = (limit,window)=>{
-    return async(req,res)=>{
+const rateLimiter = (limit,window)=>{
+    return async(req,res,next)=>{
         const ip=req.ip;
         const key= `rate:${ip}`;
 
@@ -18,3 +18,5 @@ export const rateLimiter = (limit,window)=>{
         next();
     };
 };
+
+module.exports = rateLimiter;
